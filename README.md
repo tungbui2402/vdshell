@@ -87,7 +87,7 @@ sudo chmod +x wordpress_install.sh
 ```
 ./wordpress_install.sh
 ```
-Sau khi cài xong thì chúng ta đăng nhập là xong
+Sau khi cài xong thì chúng ta đăng nhập là xong.
 ## 2. Tạo scritp bắn message đến nhóm trong tele với nội dung message là về thông tin phần cứng của server bao gồm ram, cpu, disk, load average:
 - B1: Tạo 1 file mới tên là hardware_info.sh
 ```
@@ -147,4 +147,85 @@ Nếu bạn muốn để chạy ngầm thì dùng lệnh nohup:
 ```
 nohup ./hardware_info.sh &
 ```
-Sau khi chạy shell thì cứ 3p thì con bot của chúng ta sẽ tự động gửi tin nhắn lên nhóm
+Sau khi chạy shell thì cứ 3p thì con bot của chúng ta sẽ tự động gửi tin nhắn lên nhóm.
+## 3. Mysql master slave replication
+### 3.1. Ở máy master
+- B1: Tạo 1 file có tên là master.sh
+```
+nano master.sh
+```
+- B2: Thêm bash dưới vào file:
+```
+#!/bin/bash
+
+# Cài đặt MySQL trên máy master
+sudo apt update
+sudo apt install mysql-server -y
+
+# Cấu hình MySQL trên máy master
+sudo sed -i "s/#server-id/server-id/" /etc/mysql/mysql.conf.d/mysqld.cnf
+sudo sed -i "s/#log_bin/log_bin/" /etc/mysql/mysql.conf.d/mysqld.cnf
+sudo systemctl restart mysql
+
+# Tạo tài khoản replication trên máy master
+mysql -u root -p -e "CREATE USER 'repl'@'%' IDENTIFIED WITH mysql_native_password BY 'Tung_2402';"
+mysql -u root -p -e "GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';"
+mysql -u root -p -e "FLUSH PRIVILEGES;"
+
+# Lấy thông tin ghi chú để sử dụng trong quá trình thiết lập replication trên máy slave
+echo "Vui lòng sao chép thông tin bên dưới để sử dụng trong script trên máy slave:"
+echo "Master Server Information:"
+echo "Master IP Address: $(hostname -I | awk '{print $1}')"
+echo "Replication User: repl"
+echo "Replication Password: Tung_2402"
+echo "Ghi chú các thông tin này để sử dụng sau này."
+```
+- B3: Cấp quyền cho master.sh
+```
+sudo chmod +x master.sh
+```
+- B4: Chạy master.sh
+```
+./master.sh
+```
+Sau khi chạy file master thì chúng ta sẽ nhận được 3 thông tin về ip, tài khoản và mật khẩu master
+### 3.2. Ở máy slave
+- B1: Tạo file có tên là slave.sh
+```
+nano slave.sh
+```
+- B2: Thêm vào file slave.sh dòng như sau:
+```
+#!/bin/bash
+
+# Cài đặt MySQL trên máy slave
+sudo apt update
+sudo apt install mysql-server -y
+
+# Cấu hình MySQL trên máy slave
+sudo sed -i "s/#server-id/server-id/" /etc/mysql/mysql.conf.d/mysqld.cnf
+sudo sed -i "s/#log_bin/log_bin/" /etc/mysql/mysql.conf.d/mysqld.cnf
+sudo systemctl restart mysql
+
+# Thiết lập replication trên máy slave
+echo "Vui lòng nhập thông tin sau đây để thiết lập replication từ máy master:"
+read -p "Master IP Address: " master_ip
+read -p "Replication User: " replication_user
+read -s -p "Replication Password: " replication_password
+
+mysql -u root -p -e "STOP SLAVE;"
+mysql -u root -p -e "CHANGE MASTER TO MASTER_HOST='$master_ip', MASTER_USER='$replication_user', MASTER_PASSWORD='$replication_password';"
+mysql -u root -p -e "START SLAVE;"
+mysql -u root -p -e "SHOW SLAVE STATUS\G"
+
+echo "Đã hoàn thành thiết lập replication từ máy master."
+
+```
+- B3: Cấp quyền cho slave.sh
+```
+sudo chmod +x slave.sh
+```
+- B4: Chạy slave.sh
+```
+./slave.sh
+```
