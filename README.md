@@ -16,9 +16,6 @@ sudo apt-get install -y nginx mysql-server php7.4 php7.4-gd php7.4-mysql php7.4-
 sudo systemctl start nginx
 sudo systemctl start mysql
 
-# Cấu hình MySQL
-sudo mysql_secure_installation
-
 # Tạo cơ sở dữ liệu WordPress
 sudo mysql -u root -p <<EOF
 CREATE DATABASE wordpress;
