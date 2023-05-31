@@ -98,7 +98,7 @@ nano hardware_info.sh
 
 # Cấu hình Telegram Bot và chat_id
 TELEGRAM_BOT_TOKEN="token của bạn"
-CHAT_ID="ip nhóm của bạn"
+CHAT_ID="id nhóm của bạn"
 
 # Hàm lấy thông tin phần cứng
 get_hardware_info() {
@@ -165,7 +165,7 @@ sudo sed -i "s/#log_bin/log_bin/" /etc/mysql/mysql.conf.d/mysqld.cnf
 sudo systemctl restart mysql
 
 # Tạo tài khoản replication trên máy master
-mysql -u root -p -e "CREATE USER 'repl'@'%' IDENTIFIED WITH mysql_native_password BY 'Tung_2402';"
+mysql -u root -p -e "CREATE USER 'repl'@'%' IDENTIFIED WITH mysql_native_password BY 'mk';"
 mysql -u root -p -e "GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';"
 mysql -u root -p -e "FLUSH PRIVILEGES;"
 
@@ -174,7 +174,7 @@ echo "Vui lòng sao chép thông tin bên dưới để sử dụng trong script
 echo "Master Server Information:"
 echo "Master IP Address: $(hostname -I | awk '{print $1}')"
 echo "Replication User: repl"
-echo "Replication Password: Tung_2402"
+echo "Replication Password: mk"
 echo "Ghi chú các thông tin này để sử dụng sau này."
 ```
 - B3: Cấp quyền cho master.sh
